@@ -1,0 +1,70 @@
+# 游戏核心代码  
+	函数 IsA（ClassName::StaticClass()）   ---判断对象的类型
+	# AdpGameMode 在里面做初始化
+	dpUEdEngine   editor用的
+		UdpEnData* _UspEnData;  全局的游戏数据加载，
+	
+	dPGameEngine  Game用的
+		UdpEnData* _UspEnData;  全局的游戏数据加载，还有系统的管理器
+		Init()    及时加载
+		InitManual()  初始化对应的数据 _UspEnData  延迟加载
+			SetGameMode()  设置用到的 GameMode
+			bindGame()  
+			
+			UdpLoginManager  
+				登录管理器 初始数据的接口 InitCheckAndloadGame() --> loadLastLoginPlayer()
+		AdpGameGameMode   类似于GameInfo
+			BeginPlay（）  
+				InitialGame()  ---初始化游戏逻辑
+	
+	#dpGameGameMode  游戏的逻辑控制 GameMode
+		PostLogin()  --> BeginPlay()
+		
+		
+		
+		
+		
+			
+	# AdpLoginGameMode    登录的逻辑管理器    介入点  
+	UGameInstance::StartPIEGameInstance() -->
+	ULocalPlayer::SpawnPlayActor() --> LevelActor::SpawnPlayActor(0s
+		
+		PostLogin()  --> BeginPlay()
+		
+		showScene() --> GetNextMapName()
+		
+		setLoginMode()
+		
+		initialLoginUI()  界面打开后延迟执行
+		
+		
+	# TSharedPtr   共享指针
+		创建方法 
+			struct MyStruct
+			{
+				int a; 
+			};
+			TSharedPtr<MyStruct> pTr = MakeShareable(new MyStruct());
+			pTr.a = 0;
+			
+	
+	
+# AdpNpcPawn
+	BeginPlay() --> InitEnemy()  有可能会延迟执行 --> 
+	
+# 打印输出日志  GLog->Logf(TEXT("postInitialGame"));
+
+# UdpGamePlayer   在PlayerController里面做调用角色数据的接口
+
+# _UspEnData_GameRef  UdpEnData  全局数据的对象引用
+
+# UFUNCTION(exec) 启用命令行来调用函数 调用的自身对应的成员函数 比如
+	UFUNCTION(exec)
+	void showScene(bool show);
+	"showScene true"
+	
+# 计时器 
+	GetWorldTimerManager().SetTimer(TimerHandle_delaypostInitialGame, this, &AdpGameGameMode::delaypostInitialGame, 3.0f, false);
+# FText 
+	FText::Format( LOCTEXT( "HealthFormatStr",  "{0} / {1}" ), FText::AsNumber( CurrentHealth ), FText::AsNumber( MaxHealth )  ) 
+

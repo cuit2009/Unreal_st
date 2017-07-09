@@ -1,0 +1,82 @@
+      * 大致结构
+        * game
+			class DPGAME_API UdPGameEngine : public UGameEngine, public IEnDataInterface
+        * editor
+			class DPGAMEEDITOR_API UdpUEdEngine : public UUnrealEdEngine, public IEnDataInterface		
+      * 重点讲跟任务相关的
+        * 数据
+			* 全局数据
+				UdpEnData* _UspEnData;	
+				获取	
+					virtual UdpEnData* GetEngineData() { 
+						return _UspEnData;
+					}
+				* 游戏设置数据
+					UdpGameDBInfo* _UspGameDBInfo;
+			* 角色数据
+				* 路径
+					UdPGameEngine
+					UdpUEdEngine
+						UdpEnData* _UspEnData;	
+							UdpPcDefaultDB* _UspPcDefaultDB;
+				* 默认数据
+					UdpPcDefaultDB* _UspPcDefaultDB;
+				* 角色数据缓存
+					UdpPlayerDBInfo* _UspPlayerDBInfo;
+				* 任务数据缓存
+					UdpTaskInfo* _UspTaskInfo;
+        * 流程
+			* 初始化
+				UdPGameEngine
+				UdpUEdEngine
+					InitManual(AGameModeBase* newGameMode)
+				* 初始化流程
+					Engine
+						loadmap
+							AGameModeBase
+								game 自身初始
+									virtual void PostLogin(APlayerController* NewPlayer);
+			* tick
+				UdPGameEngine
+				UdpUEdEngine
+					void UdpUEdEngine::Tick(float DeltaSeconds, bool bIdleMode)
+						* 自己抽象管理的tick
+				game	
+					void AdpGameGameMode::Tick(float DeltaSeconds)
+        * UI
+			class DPGAME_API UdpUiBase : public UObject
+				class DPGAME_API UdpUiManager : public UdpUiBase
+				class DPGAME_API UdpUiPackageManager : public UdpUiBase
+			* 初始化
+				void AdpGameGameMode::InitialGame()				
+					
+        * 配置
+			* 配置文件
+				//DP_Private/dpGame/Config/DefaultspPcDefaultDB.ini
+					DefaultdpPcDefaultDB.ini
+			* 类
+				UCLASS(config = dpPcDefaultDB)		//对应  DefaultdpPcDefaultDB.ini 文件名中Default后的名字
+					class DPGAME_API UdpPcDefaultDB : public UObject
+						UPROPERTY()											//不可配置成员声明方式
+							AdpGameGameMode* _pcdd_game;
+						UPROPERTY(config, EditAnywhere, Category = spgame)	//可配置成员声明方式
+							int32 _testint;
+	* 编码规范
+		* 项目逻辑相关的类命名 U开头
+			比如 
+				UCLASS(config = spPcDefaultDB)
+				class DPGAME_API UdpPcDefaultDB : public UObject
+		* 结构体 F开头
+			比如
+				USTRUCT()
+				struct FpcDataCache
+		* 类成员数据
+			_xxx;
+		* 成员方法
+			__xxx()
+		* 形参
+			inXXX
+			引用 outXXX
+		* 方法内部局部变量
+			pXXXX
+			
