@@ -1,0 +1,160 @@
+﻿
+# 场景动画的切换 Sequencer和Matinee
+     Sequencer
+        使用诸多特殊 轨迹 定义动画场的组成; 为 Sequencer 添加一些骨架网格体轨迹，然后添加动画轨迹为骨架网格体设置动画，放入镜头轨迹和镜头切换轨迹构成镜头之间的透视和循环。
+
+
+#组件构建的工具类 ConstructorHelpers::FObjectFinderOptional<{UstaticMesh}> 
+    示例 ConstructorHelpers::FObjectFinderOptional<UStaticMesh> PlaneMesh;
+        FConstructorStatics()
+            : PlaneMesh(TEXT("/Game/Flying/Meshes/UFO.UFO"))
+        {
+        }
+        https://docs-origin.unrealengine.com/latest/CHN/Programming/UnrealArchitecture/Reference/Classes/index.html
+        
+        ConstructorHelpers::FObjectFinder 通过 StaticLoadObject 为特定的 UObject 寻找引用。它常用于引用存储在内容包中的资源。如未找到对象， 则报告失败。
+        ConstructorHelpers::FClassFinder 为特定的 UClass 寻找引用。如类未找到，则报告失败。
+        
+        指出应该从配置文件中读取哪个变量，那么在包含这些变量的类在其UCLASS宏中应赋予Config标识符
+        UCLASS(Config=Game)
+        指定读取和保存到配置文件中的某个变量
+        UPROPERTY(Config)
+        
+        Obj->SetupAttachment(Parent, SocketName)  附加到父类上
+        #创建空的组件或者subObject 
+            CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm0"));
+            
+        #GameMode  通过ini配置表引入
+        
+        # UCLASS(...)  里面的参数是类说明符
+            https://docs-origin.unrealengine.com/latest/CHN/Programming/UnrealArchitecture/Reference/Classes/index.html
+        # Flipbook组件 帧动画
+            https://docs-origin.unrealengine.com/latest/CHN/Engine/Paper2D/Flipbooks/Components/Blueprints/index.html
+            
+# 为确保组件固定被创建、被销毁和被正确地垃圾回收，构建函数中创建的每个组件的指针应被存储在拥有类的一个 UPROPERTY 中
+    UPROPERTY() 或者 UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+    有参数和没有参数的区别
+# 获取附着的组件列表
+    GetAttachParent、GetParentComponents、GetNumChildrenComponents、GetChildrenComponents 和 GetChildComponent
+    
+# 容器 TArray TMap TSet  
+    迭代器 
+    
+# 加载对象 
+    FindObject<AFunctionalTest>(TestsOuter, *TestName);
+    LoadObject<UTexture2D>(NULL, TEXT("/Engine/EngineMaterials/DefaultWhiteGrid.DefaultWhiteGrid"), NULL, LOAD_None, NULL);
+    
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere"));
+    // 创建并放置网格物体组件，这样我们能看到球体的位置
+    UStaticMeshComponent* SphereVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualRepresentation"));
+    //发射出一个特效，绑定到MeshComp
+    UGameplayStatics::SpawnEmitterAttached(PSTemplate, MeshComp, SocketName, LocationOffset, RotationOffset);
+    //发射出一个特效，绑定到世界上
+    UGameplayStatics::SpawnEmitterAtLocation(MeshComp->GetWorld(), PSTemplate, SpawnTransform);
+    
+# 线程锁 FScopeLock  
+
+#动画Key帧 动画线划分X轴 绿线   Y轴 蓝线   Z轴 红线
+
+# 编辑器的修改
+    1 PlayParticleEffect
+        类名 UAnimNotify_PlayParticleEffect 
+    涉及到编辑器的属性修改
+        属性修改的类名 UObject 里面包含有属性修改的对应关联函数
+        PostEditChangeProperty( struct FPropertyChangedEvent& PropertyChangedEvent)
+
+    事件触发由montage执行 Notifies 和 
+    
+# FVector 函数
+    FMath::IsFinite(X)   判断当前的变量是否为0
+    FVector::ContainsNaN()  检测向量中是否含有非正常值，有，返回true;
+
+
+
+
+#异步的加载资源
+        FStringAssetReferences 和TAssetPtr
+     #简单方法
+        使用ObjectLibrary 示例代码
+            if (!ObjectLibrary)
+            {
+               ObjectLibrary = ConstructObject<UObjectLibrary>(UObjectLibrary::StaticClass());  //创建新的资源库
+               ObjectLibrary->ObjectBaseClass = BaseClass;  //关联对应的基类
+               ObjectLibrary->UseWeakReferences(GIsEditor); 
+               ObjectLibrary->AddToRoot();
+            }
+            //加载给定路径上的资源数据
+            ObjectLibrary->LoadAssetDataFromPath(TEXT("/Game/PathWithAllObjectsOfSameType");
+            if (bFullyLoad)
+            {
+               ObjectLibrary->LoadAssetsFromAssetData();
+            }
+        资源库的查询示例
+            TArray<FAssetData> AssetDatas;
+            //获取资源库中的资源列表
+            ObjectLibrary->GetAssetDataList(AssetDatas);
+
+            for (int32 i = 0; i < AssetDatas.Num(); ++i)
+            {
+                   FAssetData& AssetData = AssetDatas[i];
+
+                   const FString* FoundTypeNameString = AssetData.TagsAndValues.Find(GET_MEMBER_NAME_CHECKED(UAssetObject,TypeName));
+                   //任何具有 TypeName 文本域且该文本域中包含 "FooType" 的对象
+                   if (FoundTypeNameString && FoundTypeNameString->Contains(TEXT("FooType")))
+                   {
+                          return AssetData;
+                   }
+            }  //可以调用 ToStringReference() 来把它转换成一个 FStringAssetReference 
+        接下来使用 动态加载 管理器  StreamableManager
+            1 加载方式有 SynchronousLoad 同步的加载，但是会阻塞主线程；
+                RequestAsyncLoad 异步的加载资源，示例
+                void UGameCheatManager::GrantItems()
+                {
+                   TArray<FStringAssetReference> ItemsToStream;
+                   FStreamableManager& Streamable = UGameGlobals::Get().StreamableManager;
+                   //ItemList 是一个 TArray< TAssetPtr<UGameItem> > 
+                   for(int32 i = 0; i < ItemList.Num(); ++i)
+                   {
+                      ItemsToStream.AddUnique(ItemList[i].ToStringReference());
+                   }
+                   //调用该代理之前，将保持到任何它所加载的对象的强引用
+                   Streamable.RequestAsyncLoad(ItemsToStream, FStreamableDelegate::CreateUObject(this, &UGameCheatManager::GrantItemsDeferred));
+                }
+
+                void UGameCheatManager::GrantItemsDeferred()
+                {
+                   for(int32 i = 0; i < ItemList.Num(); ++i)
+                   {
+                        //TAssetPtr.Get() 解除对该资源的引用。
+                      UGameItemData* ItemData = ItemList[i].Get();
+                      if(ItemData)
+                      {
+                             MyPC->GrantItem(ItemData);
+                      }
+                   }
+                }
+
+# 资源的引用
+    1 构造时的引用
+        //尝试在内存中查找该资产，如果找不到，则进行加载
+        static ConstructorHelpers::FObjectFinder<UTexture2D> BarFillObj(TEXT("/Game/UI/HUD/BarFill"));
+        BarFillTexture = BarFillObj.Object;
+    2 间接属性引用
+        UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=Building)
+        TAssetPtr<UStaticMesh> BaseMesh;
+        //使用 UStaticMesh 的 TAssetPtr 将网格的加载推迟到运行时进行
+        UStaticMesh* GetLazyLoadedMesh()
+        {
+            //检查资产是否已准备好可供访问
+            if (BaseMesh.IsPending())
+            {
+                const FStringAssetReference& AssetRef = BaseMesh.ToStringReference();
+                //FStreamingManager执行同步加载
+                BaseMesh = Cast< UStaticMesh>(Streamable.SynchronousLoad(AssetRef));
+            }
+            return BaseMesh.Get();
+        }
+
+
+#模块API的定义
+      1 在 Engine 模块中将一个函数加上 ENGINE_API 的标记，那么任何引入 Engine 模块的模块都可以直接访问该函数。

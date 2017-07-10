@@ -52,7 +52,6 @@
 # AdpNpcPawn
 	BeginPlay() --> InitEnemy()  有可能会延迟执行 --> 
 	
-# 打印输出日志  GLog->Logf(TEXT("postInitialGame"));
 
 # UdpGamePlayer   在PlayerController里面做调用角色数据的接口
 
@@ -67,4 +66,22 @@
 	GetWorldTimerManager().SetTimer(TimerHandle_delaypostInitialGame, this, &AdpGameGameMode::delaypostInitialGame, 3.0f, false);
 # FText 
 	FText::Format( LOCTEXT( "HealthFormatStr",  "{0} / {1}" ), FText::AsNumber( CurrentHealth ), FText::AsNumber( MaxHealth )  ) 
+	
+	FString pBtnName_UI = FString::Printf(TEXT("Text_Btn%d"), i + 1);
+	
+#日志的打印
+	GLog->Logf(TEXT("ERROR!! Server have get a code %d, %s"), 0, aErr.GetCharArray().GetData());
+	打印到屏幕上
+		GEngine->AddOnScreenDebugMessage(1, 2, FColor::Green, FString::Printf(TEXT("[UdpNetManager::__dpProcessNetCb] Server have get a code %d %s"), int32(psErrorResp.code()), aErr.GetCharArray().GetData()));
+	
+	
+# 注册用户点击输入的事件
+  AdpLoginGameMode  里面
+   //使用当前Touch Start 注册
+		auto pInput = NewPlayer->InputComponent;
+		pInput->BindTouch(EInputEvent::IE_Pressed, _LoginMrg, &ULoginMrg::OnTouchStart);
+		pInput->BindTouch(EInputEvent::IE_Released, _LoginMrg, &ULoginMrg::OnTouchEnd);
+		pInput->BindTouch(EInputEvent::IE_Repeat, _LoginMrg, &ULoginMrg::OnTouchMove);
 
+# 刷怪触发器 dpGame\Content\Dragon\com\AI\spCycleSpwner_bp
+# 怪物的AI  dpGame\Content\Dragon\com\AI\EnemyAI_BP

@@ -1,0 +1,42 @@
+#本地的进程间通信(IPC):
+	消息传递 --> 管道、FIFO、消息队列
+	同步     --> 互斥量、条件变量、读写锁、文件和写记录锁、信号量
+	共享内存 --> 匿名的和具名的
+	远程过程调用  --> Solaris门和Sun RPC
+	
+# 如何标识一个进程
+	本地标识 ：
+		通过进程PID标识进程
+	网络层：
+		通过IP标识主机，传输层的协议和端口标识主机中的应用程序(进程)
+
+# 通信：UNIX BSD的套接字(socket)
+
+# socket() 函数  int socket(int domain, int type, int protocol);
+	domain：协议域，常用的有（AF_INET、AF_INET6、AF_LOCAL（或称AF_UNIX，Unix域socket）、AF_ROUTE等等）
+		决定了socket的地址类型
+	types: 制定socket类型 常用的有: SOCK_STREAM、SOCK_DGRAM、SOCK_RAW、SOCK_PACKET、SOCK_SEQPACKET
+	protocol: 指定协议 常用的有: IPPROTO_TCP、IPPTOTO_UDP、IPPROTO_SCTP、IPPROTO_TIPC
+
+#bind() 函数 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+	sockfd: socket描述字 通过socket函数创建，bind()函数就是给它绑定一个名字
+	addr： 指向要绑定给sockfd的协议地址
+	addrlen： 对应的地址的长度
+客户端在conect之后又系统自动生成一个
+
+字节序：由于TCP/IP首部中所有的二进制整数在网络中传输时都要求以这种次序，因此它又称作网络字节序
+
+#listen()来监听， 客户端这时调用connect()发出连接请求，服务器端就会接收到这个请求。
+客户端通过调用connect函数来建立与TCP服务器的连接
+
+#accept()函数
+	TCP服务器端依次调用 socket()、bind()、listen()之后，就会监听指定的socket地址了。
+	TCP客户端依次调用 socket()、connect()之后就想TCP服务器发送了一个连接请求。
+	TCP服务器监听到这个请求之后，就会调用 accept()函数取接收请求，这样连接就建立好了
+
+# socket 中TCP的三次握手建立连接详解
+我们知道tcp建立连接要进行“三次握手”，即交换三个分组。大致流程如下：
+
+客户端向服务器发送一个SYN J
+服务器向客户端响应一个SYN K，并对SYN J进行确认ACK J+1
+客户端再想服务器发一个确认ACK K+1

@@ -1,0 +1,30 @@
+大致介绍
+	PC
+		* Pawn
+			* 编辑器 
+				* pawn: Blueprint'/Game/Dragon/PC/PC_Demo/pawn/demoPawn.demoPawn'
+					mesh: SkeletalMesh'/Game/Dragon/PC/PC_Demo/mesh/PC_N_01_A.PC_N_01_A'
+						animation bp: AnimBlueprint'/Game/Dragon/PC/PC_Demo/anim/animBP/PC_N_01_A_AB.PC_N_01_A_AB'
+						animation mantage: AnimMontage'/Game/Dragon/PC/PC_Demo/anim/animMT/PC_N_01_A_AM.PC_N_01_A_AM'	
+			* c++ AdpPcPawn
+				E:\DP_Private\dpGame\Source\dpGame\Public\dpPcPawn.h			
+	Monster
+		* AdpNpcPawn::Mesh(ACharacter::Mesh(类型为 USkeletalMeshComponent); -> AdpPawn::Mesh(类型为UdpSMComponent) )
+			* 模型		SkeletalMesh'/Game/Dragon/NPC/BoneSpear/mesh/BoneSpear_SKEL.BoneSpear_SKEL'
+			* 动画BP	AnimBlueprint'/Game/Dragon/NPC/BoneSpear/anim/animBP/BoneSpearBP.BoneSpearBP'
+			* AdpPawn::_Montage
+				* 
+
+# 角色的文件夹 分类
+	anim    mesh   pawn
+	
+#PC 
+pawn文件夹 demopawn 对象
+	程序文件名 dpPcPawn   父类 dpPawn
+	 设置角色的动画播放类型
+	  demoPawn --> Animation --> Animation Mode 和 Anim Class
+# 动画管理器 UdpAnimManager
+	montage   dppawn 对象中定义了两个montage对象 _MontageRun、_MontageRt
+	
+# 动画的数据
+	montage --> SlotAnimTracks（动画轨道槽） --> AnimTrack(动画轨道) --> AnimSegment(每个具体动画的数据对象)
