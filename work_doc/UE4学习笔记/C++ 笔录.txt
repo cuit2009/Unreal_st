@@ -3,3 +3,36 @@
 模板与宏相比，它站在更高的抽象层上面，宏操作的是字符串中的token，然而模板却能够操作C++中的类型
 
 模板元 就是模板的基础代码中添加了递归，分支等代码
+
+# 虚幻架构
+	Actor  --> 声明类，函数 属性
+		包含了结构体数据
+	# UFunction() 
+		1 任何使用 BlueprintCallable、BlueprintImplementableEvent 或 BlueprintPure 说明符（在下方的 函数说明符 中了解更多细节）
+			进行声明的 UFunction 均会被公开到蓝图
+		2 可在类的默认属性中作为委托进行指定
+		3 是唯一一种可作为 exec 函数进行声明的函数类型
+	# 委托
+		在C++对象上以通用的但类型安全的方式调用成员函数；
+		动态地绑定到任何对象的成员函数上；
+		在该对象上调用函数;
+
+		应该通过引用传递代理，避免参数传递时分配内存
+
+	# 定时器
+		AActor::GetWorldTimerManager() 当前场景中的计时器管理员实例
+		FTimerManager::SetTimer() 用于创建定时器，以设定间隔调用特定的本地函数。
+		FTimerManager::ClearTimer() 可清理之前设置的定时器，使其不再执行。
+
+	# 对象的创建
+		NewObject
+			最为简单的UObject工厂模式，并会创建拥有自动生成的名称的新实例
+		NewNamedObject
+			展开于NewObject()，通过对新实例，对象标识 以及模板对象命名，从而被作为参数定义
+		ConstructObject
+			调用分配 对象 的StaticConstructObject()函数，执行 ClassConstructor并执行任何初始化任务，
+			例如载入配置属性，载入本地化属性以及实例化组件
+
+		销毁对象
+			对象不被引用将会被销毁 ； 垃圾回收器运行时，寻找到的未引用对象将被删除
+			函数 MarkPendingKill() 可在对象上直接调用，此函数将把指向对象的所有指针设为 NULL，并从全局搜索中移除对象
