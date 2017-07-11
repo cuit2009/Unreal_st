@@ -85,3 +85,39 @@
 
 # 刷怪触发器 dpGame\Content\Dragon\com\AI\spCycleSpwner_bp
 # 怪物的AI  dpGame\Content\Dragon\com\AI\EnemyAI_BP
+
+
+# 对象基类 
+	UserClassSystemInterface 
+
+	UObjSystemInterface
+
+# 收发消息
+	//支持 将 ParamTypes 打包成任意类型 
+	TCMDMulticastDelegateGather_UFunctionPackageParams
+		下属 TCMDMulticastDelegateGather_UFunction<TypeCMD , TypePackage> SuperClass;
+	//支持 Obj....
+	TCMDMulticastDelegateGather_UObjFunctionPackageParams
+		下属 typedef TCMDMulticastDelegateGather_UObjFunction<TypeCMD, TypePackage> SuperClass;
+
+
+# 生成对应的成员操作函数 Set Get 之类的函数
+	PROPERTY_GS_PTR_DEFAULT
+	PROPERTY_S_PTR_DEFAULT  PROPERTY_G_PTR_DEFAULT
+	还有类似的 OBJ VAR
+
+# 数据读写的操作码 FlagOp
+
+# 广播消息的回调注册操作
+	声明 NETNOTIFY_DECLAREFUNC  定义 NETNOTIFY_DECLARECLASSFUNC
+
+# 单例的引用 
+	typedef NS_GameFuction::TGameArray<...> GameCache
+	利用内存的分配机制
+	FMemory::Malloc(SizeClass::Size()))  FMemory::Memzero(Ptr, SizeClass::Size())
+	然后传出 TSharedPtr<TGameArray<ParamTypes...>>
+
+	获取单例的对象
+		GetCache()->Get<CacheIdx_UdpNetManager>().Get()
+	注册单例的对象
+		
