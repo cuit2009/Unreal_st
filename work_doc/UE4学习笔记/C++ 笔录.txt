@@ -4,3 +4,11 @@
 
 模板元 就是模板的基础代码中添加了递归，分支等代码
 
+# 内存的拷贝
+	//copy [_First, _Last) to raw [_Dest, ...)
+	std::uninitialized_copy(_InIt _First, _InIt _Last, _FwdIt _Dest)
+	左值被拷贝，右值被移动
+
+
+# 右值引用
+	C++11标准 使move赋值替代copy
