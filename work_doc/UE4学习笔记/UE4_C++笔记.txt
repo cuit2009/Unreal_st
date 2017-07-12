@@ -206,3 +206,35 @@
   SDetailsViewBase::UpdatePropertyMaps() --> SDetailsViewBase::UpdateSinglePropertyMap() --> SDetailsViewBase::QueryCustomDetailLayout() --> RetValType Execute(ParamTypes... Params)
 
   主要是在 SDetailsViewBase::QueryCustomDetailLayout()里初始化
+
+# 按钮button 的点击事件注册
+
+  slate 按钮的事件注册
+    SLATE_EVENT( FOnClicked, OnClicked ) or SLATE_EVENT( FSimpleDelegate, OnReleased )
+    事件的触发调用
+      OnReleased.ExecuteIfBound();
+
+    2 primitiveComponent 组件的事件注册
+      void UPrimitiveComponent::DispatchOnReleased(FKey ButtonReleased)
+      {
+        if (IsActorValidToNotify(GetOwner()))
+        {
+          GetOwner()->NotifyActorOnReleased(ButtonReleased);
+          if (IsActorValidToNotify(GetOwner()))
+          {
+            GetOwner()->OnReleased.Broadcast(GetOwner(), ButtonReleased);
+          }
+        }
+
+        if (!IsPendingKill())
+        {
+          OnReleased.Broadcast(this, ButtonReleased);
+        }
+      }
+
+      3 Button 按钮的事件
+        void UButton::SlateHandlePressed()
+        {
+          OnPressed.Broadcast();
+        }
+

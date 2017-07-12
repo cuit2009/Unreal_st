@@ -120,4 +120,36 @@
 	获取单例的对象
 		GetCache()->Get<CacheIdx_UdpNetManager>().Get()
 	注册单例的对象
-		
+
+# 项目中消息的注册
+
+	GameNetMessage::RegisterStaticFuncs()里执行 RegisterPackageParamsStatic() 
+	//对应的消息注册类 GameNetManage类型继承了它 
+	//NS_GameFuction::TCMDMulticastDelegateGather_UObjFunctionPackageParams <uint32, TSharedPtr<google::protobuf::Message>, uint8*, int32>
+	TCMDMulticastDelegateGather_UObjFunctionPackageParams
+		里面包含了 SuperClass 注册的对象执行
+		//支持UFunction Bind ... 
+		TCMDMulticastDelegateGather_UObjFunction --> SuperClass 在函数 GameNetMessage::RegisterStaticFuncs()注册消息反序列化的执行
+		继承父类两个
+			TCMDMulticastDelegateGatherBase
+
+			TCMDMulticastDelegateGather_UObjFunction
+				事件的绑定，支持Register() Remove()
+				继承父类 TCMDMulticastDelegateGatherBase  //由CMD 转发到对应的 Delegate
+
+		2 还有对应的类型 TCMDMulticastDelegateGather_UFunctionPackageParams
+		//支持 将 ParamTypes 打包成任意类型  父类有两个与上一个Obj类似
+			StaticPackageParamFuncBase 
+
+			//支持UFunction Bind ... 
+			TCMDMulticastDelegateGather_UFunction
+				继承父类 TCMDMulticastDelegateGatherBase  //由CMD 转发到对应的 Delegate
+
+
+消息的定义
+	NETNOTIFY_DECLARECLASSFUNC
+消息的声明
+	NETNOTIFY_DECLAREFUNC
+
+	将对象转换成对应的数据类型
+	NETNOTIFY_PARSE_2_SUB(DragonProject::sNewRoleResp, aVar);
