@@ -153,3 +153,16 @@
 
 	将对象转换成对应的数据类型
 	NETNOTIFY_PARSE_2_SUB(DragonProject::sNewRoleResp, aVar);
+
+
+
+# 主角动作的快接点控制
+	1 AdpPawn::canInteruptBySelf(bool can)  自己打断的标志
+		_canInteruptBySelf
+		1 控制walking 是否可以打断动作 --> AdpPawn::canDoNewStateAction()
+
+	2 AdpPcPawn::commonAttackNotInterrupt(bool NotInterrupt)
+		_commonAttackNotInterrupt
+		1 AdpPcPawn::__DoSkill()
+
+		2 _manualCommonAttack   
