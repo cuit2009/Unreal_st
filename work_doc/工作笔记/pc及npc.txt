@@ -28,3 +28,10 @@ pawn文件夹 demopawn 对象
 	
 # 动画的数据
 	montage --> SlotAnimTracks（动画轨道槽） --> AnimTrack(动画轨道) --> AnimSegment(每个具体动画的数据对象)
+
+	SkeletalMesh'/Game/Dragon/Art/Actor/PC/Berserker/BerserkerIntial/Mesh/Suit/PC_Berserker01/PC_Berserker01_Helmet_Lod01_FBX.PC_Berserker01_Helmet_Lod01_FBX'
+	// Fill out your copyright notice in the Description page of Project Settings.
+
+
+LogDataTable:Error: UDataTable::FindRow : Incorrect type specified for DataTable '/Game/Text/equipment.equipment' ().
+LogLevel: ActivateLevel /Game/Dragon/Art/Scene/CreateCharacter/UEDPIE_0_CreateCharacter 1 1 0

@@ -238,3 +238,7 @@
           OnPressed.Broadcast();
         }
 
+# 创建一个系统的盒子
+  FCollisionShape::MakeBox()
+  射线检测
+    GetWorld()->LineTraceSingleByChannel()

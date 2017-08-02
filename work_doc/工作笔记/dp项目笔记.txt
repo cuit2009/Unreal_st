@@ -165,4 +165,83 @@
 		_commonAttackNotInterrupt
 		1 AdpPcPawn::__DoSkill()
 
-		2 _manualCommonAttack   
+		2 _manualCommonAttack 
+
+# 角色创建流程
+* 读取
+	//动态加载角色数据
+	void AdpController::__ChangeForm(int32 pInCid, int32 pInFormId)
+		//这个是临时的应代码，从Gamemode取的数据，应该改为读表
+		TSubclassOf<class AdpPcPawn>  ptype	= GetGameInfo()->__getPawnType(pInCid, pInFormId);
+
+* 数据导出
+	* 工具编辑角色数据导出
+		* 目前还没有
+	* BP编辑角色数据并导出
+		* 修改BP数据，在编辑器中执行save操作时会调用
+			AdpPawn::presave()
+				在这里把配置好的数据序列化到JSON  
+
+
+# dppawn 的产生流程
+	AdpPawn::PostLoad() 对象的资源加载，在切换场景时就会执行
+	//创建新的角色特效组件
+	TArray<UParticleSystemComponent*> _DamageEffects;
+	UWorld* World = GEngine->GetWorldFromContextObject(GetWorld());
+	if (World != nullptr)
+	{
+		UParticleSystemComponent* PSC = NewObject<UParticleSystemComponent>((GetWorld()->GetWorldSettings() ? GetWorld()->GetWorldSettings() : (UObject*)World));
+		PSC->bAutoDestroy = false;
+		PSC->bAllowAnyoneToDestroyMe = true;
+		PSC->SecondsBeforeInactive = 0.0f;
+		PSC->bAutoActivate = false;
+		PSC->SetTemplate(_DamageParticleTemplate);
+		PSC->bOverrideLODMethod = false;
+
+		PSC->RegisterComponentWithWorld(World);
+
+		PSC->SetAbsolute(true, true, true);
+		//PSC->SetWorldLocationAndRotation(location, rotation);
+		PSC->SetRelativeScale3D(FVector(1.f));
+		PSC->ActivateSystem(false);
+		PSC->SetVisibility(false);
+		_DamageEffects.Add(PSC);
+	}
+
+	//这是spawn到world里面的时候要执行
+	virtual void AActor::PostActorCreated();
+	//接上步
+	 AActor::FinishSpawning() --> AActor::PostInitializeComponents()  
+
+	 //
+	 AActor::BeginPlay()
+
+	 //NpcPawn 锁敌用的插槽
+	 ak_lock
+
+	 #-----------编辑器-----------    
+	 #GamePawnConfigMgr中的
+	 	UDataTable::CreateTableFromCSVString   string转成CSV的数据结构
+	 	UGamePawnConfigMrg::LoadConfigAsExporters   加载配置表的数据到编辑器中
+	 		返回值是 TArray<FGameConfigExporter*> 
+	 	# UGamePawnConfigMrg::GetConfigCsv() 获取对应的csv配置的路径
+	 	# UGamePawnConfigMrg::AffirmDataTable()  获取当前的配置表数据容器
+
+	 	# UGamePawnConfigMrg::Export(UDataTable* aTable, bool bNeedEmpty)  导出填好的数据
+
+	 	# 保存数据到表中
+	 		UGamePawnConfigMrg::SaveConfigCsv()   
+	 		UGamePawnConfigMrg::SaveConfigJson()
+	 			然后导入到数据表的对象
+	 			UGamePawnConfigMrg::Export()
+
+
+	 	# 导入配置表数据
+	 		UGamePawnConfigMrg::LoadConfigToEditor()
+	 			UGamePawnConfigMrg::LoadConfigAsExporters()
+	 				UGamePawnConfigMrg::CreateConfig() 由配置导出到具体的数据对象 AGamePawnConfigBase 然后执行
+	 				AGamePawnConfigBase* aBase;	aBase->PropertyReadFrom(aExporter); 读取数据
+
+	 	# 划线  UDebugLineComponentBase  具体的应用实例 UDebugLineComponentRelative
+	 		使用实例 AGamePawnConfigMonsterSpawner::ShowDebugLine()  里面调用了 UDebugLineComponentBase::AffirmDebugLineComp() 获取一个划线的组件
+	 			GetFlagOp().WriteFlag<WRITE>(UDebugLineComponentBase::Dirty_Draw); 使用dirty来调用绘制
