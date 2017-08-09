@@ -12,3 +12,6 @@
 
 # 右值引用
 	C++11标准 使move赋值替代copy
+
+#  函数形参  指针 void A(Type* b)
+	引用指针 void A(Type*& b)
