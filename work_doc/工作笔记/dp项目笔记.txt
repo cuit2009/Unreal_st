@@ -280,7 +280,7 @@
 					FPersona::OpenNewAnimationDocumentTab() 中 TSharedPtr<SWidget> TabContents = PersonaModule.CreateEditorWidgetForAnimDocument(SharedThis(this), InAnimAsset, Args, DocumentLink);
 
 					SAnimMontagePanel::RefreshComboLists()
-
+//montage 编辑器界面
 				SMontageEditor::PostUndo()
 
 				SMontageEditor::RebuildMontagePane()
@@ -318,6 +318,7 @@
  	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
 	TWeakPtr<IAssetTypeActions> AssetTypeActions = AssetToolsModule.Get().GetAssetTypeActionsForClass( Asset->GetClass() );
 
+	FAssetTypeActions_AnimationAsset::OpenAssetEditor()
 	-->打开对应的资源编辑器
 	AssetTypeActions.Pin()->OpenAssetEditor()   -->  打开animation editor
 
@@ -359,3 +360,14 @@ UDebugSkelMeshComponent 类里面
 # FAssetEditorToolkit::InitAssetEditor() 注册命令行的数据 MapAction
 
 FAnimationEditor 调用的FAssetToolKit 对象来管理事件 
+
+
+# UGameInstance 始终存在游戏中，用于存放全局的变量数据 
+	UGameEngine   --里面有一变量 UGameInstance* GameInstance;
+
+
+# AnimSequence 对象的初始化流程
+	导入资源时 会先调用 Serialize()  --> PostDuplicate()  --> UObject::ConditionalPostLoad()  --> PostLoad()
+		--> 会调用到编辑器的接口 PostEditChangeProperty()
+
+		保存 Serialize()

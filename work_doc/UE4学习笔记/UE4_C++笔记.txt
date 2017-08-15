@@ -1,4 +1,4 @@
-﻿
+
 # 场景动画的切换 Sequencer和Matinee
      Sequencer
         使用诸多特殊 轨迹 定义动画场的组成; 为 Sequencer 添加一些骨架网格体轨迹，然后添加动画轨迹为骨架网格体设置动画，放入镜头轨迹和镜头切换轨迹构成镜头之间的透视和循环。
@@ -242,3 +242,20 @@
   FCollisionShape::MakeBox()
   射线检测
     GetWorld()->LineTraceSingleByChannel()
+
+
+# ActorComponent 所有component的基类  
+    USceneComponent --> 派生
+      1 UPrimitiveComponent --> 派生
+        UMeshComponent --> 派生
+          UStaticMeshComponent
+
+      2 UChildActorComponent -->
+
+# 设置碰撞的通道 
+      static FName CollisionProfileName(TEXT("Spectator"));
+      GetCollisionComponent()->SetCollisionProfileName(CollisionProfileName);
+
+# 编译器的编译命令
+      
+E:\DP_Private\UnrealEngine-4.14.3-release\Engine\Build\BatchFiles\Build.bat
