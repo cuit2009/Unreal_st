@@ -259,3 +259,12 @@
 # 编译器的编译命令
       
 E:\DP_Private\UnrealEngine-4.14.3-release\Engine\Build\BatchFiles\Build.bat
+
+
+#引擎继承的规则
+   UObjectBase --> UObjectBaseUtility --> UObject
+      UObjectBase 成员中有 ClassPrivate ，调用 GetClass()可获取 UClass*  
+          UClass下方有成员 ClassGeneratedBy （Object* 对象），ClassGeneratedBy有为null的情况
+      ClassGeneratedBy==null 时 Object 的Name 获取可以从 GetClass()->GetName() 获取
+
+# 移除掉AnimSequenceBase上面的notifies, 流程

@@ -371,3 +371,6 @@ FAnimationEditor 调用的FAssetToolKit 对象来管理事件
 		--> 会调用到编辑器的接口 PostEditChangeProperty()
 
 		保存 Serialize()
+
+# 动画通知点的保存 
+	FAnimNotifyEvent::TriggerTimeOffset 和 FAnimNotifyEvent::TriggerTimeOffset 需要判断float型的无穷小下限(0.000001)
