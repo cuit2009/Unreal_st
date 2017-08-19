@@ -374,3 +374,6 @@ FAnimationEditor 调用的FAssetToolKit 对象来管理事件
 
 # 动画通知点的保存 
 	FAnimNotifyEvent::TriggerTimeOffset 和 FAnimNotifyEvent::TriggerTimeOffset 需要判断float型的无穷小下限(0.000001)
+
+# 获取 Object 所对应的 UPackage 
+	Object->GetOutermost();
