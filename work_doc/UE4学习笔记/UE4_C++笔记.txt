@@ -1,4 +1,4 @@
-﻿
+
 # 场景动画的切换 Sequencer和Matinee
      Sequencer
         使用诸多特殊 轨迹 定义动画场的组成; 为 Sequencer 添加一些骨架网格体轨迹，然后添加动画轨迹为骨架网格体设置动画，放入镜头轨迹和镜头切换轨迹构成镜头之间的透视和循环。
@@ -242,3 +242,76 @@
   FCollisionShape::MakeBox()
   射线检测
     GetWorld()->LineTraceSingleByChannel()
+
+
+# ActorComponent 所有component的基类  
+    USceneComponent --> 派生
+      1 UPrimitiveComponent --> 派生
+        UMeshComponent --> 派生
+          UStaticMeshComponent
+
+      2 UChildActorComponent -->
+
+# 设置碰撞的通道 
+      static FName CollisionProfileName(TEXT("Spectator"));
+      GetCollisionComponent()->SetCollisionProfileName(CollisionProfileName);
+
+# 编译器的编译命令
+      
+E:\DP_Private\UnrealEngine-4.14.3-release\Engine\Build\BatchFiles\Build.bat
+
+
+#引擎继承的规则
+   UObjectBase --> UObjectBaseUtility --> UObject
+      UObjectBase 成员中有 ClassPrivate ，调用 GetClass()可获取 UClass*  
+          UClass下方有成员 ClassGeneratedBy （Object* 对象），ClassGeneratedBy有为null的情况
+      ClassGeneratedBy==null 时 Object 的Name 获取可以从 GetClass()->GetName() 获取
+
+# 移除掉AnimSequenceBase上面的notifies, 流程
+
+
+# 手动处理编辑器的资源保存
+      if(!aSheet)return nullptr ;
+  UPackage* Pkg = CreatePackage(nullptr, *aPackagePath);
+  UDataTable* NewObj = nullptr;
+  EObjectFlags Flags = RF_Public | RF_Standalone;
+  NewObj = NewObject<UDataTable>(Pkg, UDataTable::StaticClass(), TEXT("XLnest"), Flags);
+  int32 Row = aSheet->lastRow();
+  NewObj->RowStruct = Fnest::StaticStruct();
+  FName aName;
+  for (int idx = EdConst::Const_DataRowStartIdx; idx < Row; idx++)
+  {
+    if (aSheet->readNum(idx, 0) == 0)continue;
+    aName = *(FString::FromInt(idx - EdConst::Const_DataRowStartIdx));
+    Fnest& aStruct = *((Fnest*)FMemory::Malloc(sizeof(Fnest)));
+    FMemory::Memzero(&aStruct, sizeof(Fnest));
+    aStruct._des = aSheet->readNum(idx, 0);
+    aStruct._type = aSheet->readNum(idx, 1);
+    aStruct._job = aSheet->readNum(idx, 2);
+    aStruct._part = aSheet->readNum(idx, 3);
+    {
+      TArray<FString>  AArr;
+      ConvertTable::ReduceDimensional(AArr,aSheet->readStr(idx, 4));
+      {
+        TArray<FString>  OneArr;
+        ConvertTable::ReduceDimensional(OneArr,AArr[0]);
+        aStruct._A._One._issell = FCString::Strtoi(*OneArr[0], nullptr, 10);
+      }
+      {
+        TArray<FString>  TwoArr;
+        ConvertTable::ReduceDimensional(TwoArr,AArr[1]);
+        FHeHeOne  aTwo  ;
+        for (int32 TwoIdx = 0 ; TwoIdx<TwoArr.Num();TwoIdx++)
+        {
+          TArray<FString> aTwoArrSub;
+          ConvertTable::ReduceDimensional(aTwoArrSub,TwoArr[TwoIdx]);
+          check(aTwoArrSub.Num() == 1 );
+          aTwo._issell  = FCString::Strtoi(*aTwoArrSub[0], nullptr, 10);
+          aStruct._A._Two.Add(aTwo);
+        }
+      }
+    }
+    NewObj->RowMap.Add(aName, reinterpret_cast<uint8*>(&aStruct));
+  }
+  UPackage::SavePackage(Pkg, nullptr, RF_Standalone, *FPackageName::LongPackageNameToFilename(*aPackagePath, FPackageName::GetAssetPackageExtension()), GLog, nullptr, false, true, SAVE_None);
+  return  NewObj;

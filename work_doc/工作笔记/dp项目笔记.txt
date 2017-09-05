@@ -219,7 +219,7 @@
 	 //NpcPawn 锁敌用的插槽
 	 ak_lock
 
-	 #-----------编辑器-----------    
+#-----------编辑器-----------    
 	 #GamePawnConfigMgr中的
 	 	UDataTable::CreateTableFromCSVString   string转成CSV的数据结构
 	 	UGamePawnConfigMrg::LoadConfigAsExporters   加载配置表的数据到编辑器中
@@ -245,3 +245,135 @@
 	 	# 划线  UDebugLineComponentBase  具体的应用实例 UDebugLineComponentRelative
 	 		使用实例 AGamePawnConfigMonsterSpawner::ShowDebugLine()  里面调用了 UDebugLineComponentBase::AffirmDebugLineComp() 获取一个划线的组件
 	 			GetFlagOp().WriteFlag<WRITE>(UDebugLineComponentBase::Dirty_Draw); 使用dirty来调用绘制
+
+#--------动画的通知点------------
+	FActorComponentTickFunction::ExecuteTickHelper() --> UDebugSkelMeshComponent::RefreshBoneTransforms() -->
+	USkeletalMeshComponent::OverrideAnimationData()  --> USkinnedMeshComponent::TickComponent()
+
+
+	特效的标记点
+		UAnimNotify_PlayParticleEffect   UdpPlayParticleEffect_Nt  UAnimNotify_PlaySound
+			继承的 UAnimNotify  时间点的触发标记
+
+		UAnimNotifyState_TimedParticleEffect UAnimNotifyState_Trail
+			继承的 UAnimNotifyState 时间段的触发标记
+
+	# UAnimInstance::NotifyQueue   储存上一Tick被触发到的通知点
+		FAnimNotifyQueue::AddAnimNotifies() --> FAnimNotifyQueue::AddAnimNotifiesToDest() 添加一个通知点到 NotifyQueue
+
+
+	Montage --> FSlotAnimationTrack --> FAnimTrack  --> 保存有 TArray<FAnimSegment>  动画的片段 (section)
+		FAnimSegment  --> 中保存了 UAnimSequenceBase 动画片段的资源数据 (指针引用)
+
+#编辑器
+		编辑器有个统一的渲染模块 FSlateApplication::Tick()
+ Montage 
+		TSharedRef<IAnimationEditor> CreateAnimationEditor()  调用 FAnimationEditor 的创建 
+		然后调用 FAnimationEditor::InitAnimationEditor()  初始化所需要的各种数据
+			例如 FPersonaModule& PersonaModule = FModuleManager::LoadModuleChecked<FPersonaModule>("Persona");
+					PersonaToolkit = PersonaModule.CreatePersonaToolkit(InAnimationAsset);
+		
+			SMontageEditor::Construct() 开启编辑界面 界面中的montage对象由 asset资源传入
+				最后调入 FPersonaModule::CreateEditorWidgetForAnimDocument() 287 行
+					FAnimationEditor::OpenNewAnimationDocumentTab() 中 TSharedRef<SWidget> TabContents = PersonaModule.CreateEditorWidgetForAnimDocument(SharedThis(this), InAnimAsset, Args, DocumentLink);
+
+					FPersona::OpenNewAnimationDocumentTab() 中 TSharedPtr<SWidget> TabContents = PersonaModule.CreateEditorWidgetForAnimDocument(SharedThis(this), InAnimAsset, Args, DocumentLink);
+
+					SAnimMontagePanel::RefreshComboLists()
+//montage 编辑器界面
+				SMontageEditor::PostUndo()
+
+				SMontageEditor::RebuildMontagePane()
+
+
+				FPersona::SaveAnimationAssets_Execute()
+
+		怎样获取编辑器的编辑对象？？？
+
+
+
+#--------------创建一个Notify----------------
+	# SAnimNotifyTrack::CreateNewNotify() 调用进来  创建一个FAnimNotifyEvent() 类型
+
+	# 通知点的时间偏移计算 UAnimSequenceBase::CalculateOffsetForNotify()  获取通知点偏移类型 然后传入 GetTriggerTimeOffsetForType()获取数值
+
+	#替换掉通知点
+		SAnimNotifyPanel::OnReplaceSelectedWithNotify()
+
+# 动作的编辑器创建 
+	FString Filename = FModuleManager::Get().GetModuleFilename(ModuleName);
+
+	FPersonaModule& PersonaModule = FModuleManager::LoadModuleChecked<FPersonaModule>("Persona");
+	ISkeletonEditorModule& SkeletonEditorModule = FModuleManager::GetModuleChecked<ISkeletonEditorModule>("SkeletonEditor");
+
+	///获取module的数据
+	FAnimationEditor::InitAnimationEditor()
+
+
+# 获取动作编辑器的module
+ IAnimationEditorModule& AnimationEditorModule = FModuleManager::LoadModuleChecked<IAnimationEditorModule>("AnimationEditor");	
+ 点击了动作Montage 蓝图资源后，编辑器启动顺序
+ FAssetEditorManager::OpenEditorForAsset()  --> 
+ 通过module工具获取当前资源饿类型：
+ 	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+	TWeakPtr<IAssetTypeActions> AssetTypeActions = AssetToolsModule.Get().GetAssetTypeActionsForClass( Asset->GetClass() );
+
+	FAssetTypeActions_AnimationAsset::OpenAssetEditor()
+	-->打开对应的资源编辑器
+	AssetTypeActions.Pin()->OpenAssetEditor()   -->  打开animation editor
+
+	IAnimationEditorModule& AnimationEditorModule = FModuleManager::LoadModuleChecked<IAnimationEditorModule>("AnimationEditor");
+	AnimationEditorModule.CreateAnimationEditor(Mode, EditWithinLevelEditor, AnimAsset);
+
+	-->  PersonaModule的调用
+	FPersonaModule& PersonaModule = FModuleManager::LoadModuleChecked<FPersonaModule>("Persona");
+	PersonaToolkit = PersonaModule.CreatePersonaToolkit(InAnimationAsset);  --> FPersonaToolkit::CreatePreviewScene()
+
+	--> AnimationEditorPreviewScene::SetPreviewMeshInternal() --> SkeletalMeshComponent 与 NewPreviewMesh不一致 执行 SkeletalMeshComponent->SetSkeletalMesh(NewPreviewMesh);
+	--> 最终 UDebugSkelMeshComponent::initAnim()
+
+# 编辑器创建之后 设置ToolbarExtender 添加到 AnimationEditorModule.GetAllAnimationEditorToolbarExtenders();
+
+UDebugSkelMeshComponent 类里面
+	class UAnimPreviewInstance* PreviewInstance;   UAnimInstance* SavedAnimScriptInstance;
+
+#编辑器之间用事件代理的触发来交互
+	 SAnimationSequenceBrowser::OnRequestOpenAsset() 里的 OnOpenNewAsset.ExecuteIfBound(Asset);
+
+	 FArguments& inArgs  //事件的触发器由此传入
+
+# 事件的触发回调流程
+	 OnAssetsActivated.ExecuteIfBound()  //对应的事件触发  手动调用
+	 	--> TBaseSPMethodDelegateInstance::ExecuteIfSafe()  --> TBaseSPMethodDelegateInstance::Execute()
+	 	 --> 跳转到了对应的事件函数
+
+# 编辑界面传入的参数 Args 例如事件回调 OnShouldFilterAsset(InArgs._AssetPickerConfig.OnShouldFilterAsset)
+	 	 _  下划线 自动添加的
+
+# 点击动作编辑器的保存按钮  --> 触发 FUICommandList::ExecuteAction() --> FAssetEditorToolkit::SaveAsset_Execute()
+
+
+
+
+
+
+# FAssetEditorToolkit::InitAssetEditor() 注册命令行的数据 MapAction
+
+FAnimationEditor 调用的FAssetToolKit 对象来管理事件 
+
+
+# UGameInstance 始终存在游戏中，用于存放全局的变量数据 
+	UGameEngine   --里面有一变量 UGameInstance* GameInstance;
+
+
+# AnimSequence 对象的初始化流程
+	导入资源时 会先调用 Serialize()  --> PostDuplicate()  --> UObject::ConditionalPostLoad()  --> PostLoad()
+		--> 会调用到编辑器的接口 PostEditChangeProperty()
+
+		保存 Serialize()
+
+# 动画通知点的保存 
+	FAnimNotifyEvent::TriggerTimeOffset 和 FAnimNotifyEvent::TriggerTimeOffset 需要判断float型的无穷小下限(0.000001)
+
+# 获取 Object 所对应的 UPackage 
+	Object->GetOutermost();
