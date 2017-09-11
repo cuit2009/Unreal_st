@@ -315,16 +315,3 @@ E:\DP_Private\UnrealEngine-4.14.3-release\Engine\Build\BatchFiles\Build.bat
   }
   UPackage::SavePackage(Pkg, nullptr, RF_Standalone, *FPackageName::LongPackageNameToFilename(*aPackagePath, FPackageName::GetAssetPackageExtension()), GLog, nullptr, false, true, SAVE_None);
   return  NewObj;
-
-  #if WITH_EDITOR
-      outTable->EmptyTable();
-      outTable->CreateTableFromJSONString(Str);
-#endif
-
-# 程序调用命令行
-      //打开地图
- GetWorld()->GetFirstPlayerController()->ConsoleCommand("tryAgainCurrentBattle Scene01_01_start");
-    //
- if(pIEnDataInterface->GetStreamLevel())
-    pIEnDataInterface->GetStreamLevel()->bIsRequestingUnloadAndRemoval = true;
- GetWorld()->GetFirstPlayerController()->ConsoleCommand("open LoginDemoEntry");
