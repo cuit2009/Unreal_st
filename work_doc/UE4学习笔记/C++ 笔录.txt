@@ -1,4 +1,4 @@
-﻿# 模板 
+# 模板 
 	模板 是更智能的宏。模板和宏都是编译前代码生成，像宏一样，模板代码会被编译器在编译的第一阶段（在内部转，这点儿与预编译器不同）就展开成合法的C++代码，然后根据展开的代码生成目标代码，链接到最终的应用程序之中
 模板与宏相比，它站在更高的抽象层上面，宏操作的是字符串中的token，然而模板却能够操作C++中的类型
 
@@ -13,5 +13,28 @@
 # 右值引用
 	C++11标准 使move赋值替代copy
 
-#  函数形参  指针 void A(Type* b)
-	引用指针 void A(Type*& b)
+# -------------模板-----------------
+	1 模板自己的类型参数也可以成为友元
+		template <typename Type> class Bar{
+			friend Type;
+		};
+	2 不能可以定义typedefy引用一个模板 例如：
+		typedef Blob<T> BlobDef;  //错误的
+	但可以定义类型别名
+		template<typename T> using twin = pair<T, T>;
+		twin<string> authors;
+
+	3 类似其他成员函数 一个static函数只有在使用时才实例化，所有Foo<X>共享同一个static成员
+		auto ct = Foo<int>::count();   //实例化Foo<int>::count()
+	4 模板内不能重用模板的参数名
+		template<typename A, typename B> void f(A, B)
+	{
+		double B;  //错误
+	}
+
+	5 声明中模板参数不必与定义中相同
+
+	6 显示声明 模板的参数类型
+		template<typename T>
+		typename T::value_type top(const T& C)
+		{}
