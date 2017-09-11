@@ -377,3 +377,24 @@ FAnimationEditor 调用的FAssetToolKit 对象来管理事件
 
 # 获取 Object 所对应的 UPackage 
 	Object->GetOutermost();
+
+# UI界面的事件回调注册  --手动
+		//注册冲刺
+	UButton* pButton_push = pUiMgr->getUi<UButton>(_pc->GetGameInfo()->_UspUiManager->_spUI,".Button_push");
+	if (pButton_push){
+		//DP::__BindCallBackByEvent(pButton_push, _pc, EDPUIEVENT::EDPUIEVENT_CLICK);
+		// 手动注册的方法
+		DP::__BindCallBack(pButton_push->OnClicked,_pc,"__UI_Button_push");
+		//
+	}
+
+	
+
+	/Game/Dragon/Maps/Scene01/Scene01_01/Scene01_01_enemies
+
+/Game/Dragon/Art/Scene/Scene01/Scene01_01/Scene01_01
+
+
+# 界面的基类
+	dpUIViewBase  ---主管显示
+	
