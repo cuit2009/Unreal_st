@@ -315,3 +315,93 @@ E:\DP_Private\UnrealEngine-4.14.3-release\Engine\Build\BatchFiles\Build.bat
   }
   UPackage::SavePackage(Pkg, nullptr, RF_Standalone, *FPackageName::LongPackageNameToFilename(*aPackagePath, FPackageName::GetAssetPackageExtension()), GLog, nullptr, false, true, SAVE_None);
   return  NewObj;
+
+  # 数据的字节数
+  sizeof(int32) = 4
+  sizeof(FString) = 16
+  sizeof(UObject*) = 8
+  sizeof(bool) = 1
+
+
+  #富文本
+  ---渲染的
+    TArray< TSharedRef< class ITextDecorator > > Decorators;
+      const bool bForEditing = false;
+      FTutorialText::GetRichTextDecorators(bForEditing, Decorators);
+
+      TSharedRef<SRichTextBlock> TextBlock = SNew(SRichTextBlock)
+          .Visibility(EVisibility::SelfHitTestInvisible)
+          .TextStyle(FEditorStyle::Get(), "Tutorials.Content.Text")
+          .DecoratorStyleSet(&FEditorStyle::Get())
+          .Decorators(Decorators)
+          .Text(InContent.Text)
+          .AutoWrapText(bAutoWrapText)
+          .WrapTextAt(WrapTextAt)
+          .Margin(4)
+          .LineHeightPercentage(1.1f)
+          .HighlightText(InHighlightText);
+
+      return TextBlock;
+
+ 辅助的类 FTutorialText
+ ---初始化时候
+  FTutorialStage& Stage = InTutorialToImportTo->Stages[InTutorialToImportTo->Stages.Add(FTutorialStage())];
+        Stage.Name = *Excerpt.Name;
+        Stage.Content.Type = ETutorialContent::RichText;
+
+        FString RichText;
+        FString* TitleStringPtr = Excerpt.Variables.Find(TEXT("StageTitle"));
+        if(TitleStringPtr != nullptr)
+        {
+          RichText += FString::Printf(TEXT("<TextStyle Style=\"Tutorials.Content.HeaderText2\">%s</>\n\n"), **TitleStringPtr);
+        }
+        RichText += Excerpt.RichText;
+
+        Stage.Content.Text = FText::FromString(RichText);
+
+# 渲染流程
+      1, Game thread  //游戏线程 
+        (1) World Tick
+          Physics  
+          Game logic
+        (2) Slate Tick   //Prepass：从下到上遍历树，计算每一个Widget的理想尺寸 （Desired Size）。
+                         //OnPaint：从上到下遍历树，计算渲染所需的 Draw Elements 。
+          Layout computations
+          Painting
+      2, Render thread
+        (1) Draw scene
+        (2) Slate
+          Widget Render   //执行 UI 的 RTT，如果使用了 Retainer Box，这里会将 Draw Elements 渲染到 Retainer Box 的 Render Target。
+          Slate Render    //将 Draw Elements 渲染到 Back Buffer，如果使用了 Retainer Box，会将 Retainer Box 对应的 Texture Resource 渲染到 Back Buffer。
+        (3) Present
+# 性能指标
+      命令：stat.Slate  //查看总的性能指标
+      stat dumpave -num=120 -ms=0.5  //查看统计线程变量的时间开销  ,以日志输出，减少额外的消耗
+      //三个关键指标的统计数据分别是：
+        Slate Tick：统计线程变量 STAT_SlateTickTime。
+        Slate Render：统计线程变量 STAT_SlateRenderingRTTime。
+        Widget Render：统计线程变量 FWidgetRenderer_DrawWindow。
+# UI 的优化方案 
+      Invalidation box
+        1 可以勾选 Invalidation Box 对应的 Cache Relative Transforms ;
+            那么当 User Widget 的位置变化时，引擎不会去更新所有的 Draw Element（即 Vertex Buffer ），而会通过修改 Shader 参数（View * Projection Matrix）来反应位置变化; 对缩放无效
+
+        widget频繁的缓存会消耗过多的性能，解决的方法
+            1 拆分 Invalidation Box，根据 Widget 变化是否频繁将它们拆分到不同的 Invalidation Box 中。
+
+            2 将 Widget 设定成 Is Volatile，这样上层的 Invalidation Box 在缓存时就会排除这个 Widget，
+            该 Widget 每帧都会 Tick 并计算 Prepass 和 OnPaint，但整体 Widget Tree 的缓存不会受到影响。
+        
+        Slate.AlwaysInvalidate 命令可以强制 Invalidation Box 每帧更新缓存，可以用于测试是否会造成突然的卡顿。
+
+      可见性
+        Visible： 可见、可点击
+        HitTestInvisible： 可见、当前 Widget 不可点击、所有 Child Widget 不可点击
+        SelfHitTestInvisible： 可见、当前 Widget 不可点击、不影响 Child Widget
+        Hidden： 不可见、占用布局空间
+        Collapsed： 不可见、不占用布局空间
+
+# FName 轻型的字符串类型，即使被使用多次，也只是在数据表中储存一次
+        不区分大小写， 不可变，无法被操作； 访问和查找速度较快
+
+# FText  
