@@ -1,0 +1,3 @@
+vs 的项目设置上--属性设置
+最后加上 -simmobile 参数就行
+"$(SolutionDir)$(ProjectName).uproject" -debug -simmobile

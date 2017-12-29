@@ -1,0 +1,1 @@
+print("test lua path test_test1")
